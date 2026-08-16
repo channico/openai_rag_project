@@ -22,8 +22,6 @@ GENERATIONAL_MODEL = os.getenv(
 KNOWLEDGE_BASE = Path("knowledge_base")
 INDEX_PATH = Path("rag_index.json")
 
-DOCUMENTS_DIR = Path("documents")
-
 MAX_WORDS = 60
 OVERLAP_SENTENCES = 1
 
@@ -32,6 +30,16 @@ def chunk_text_by_sentence(
         max_words=MAX_WORDS,
         overlap_sentences=OVERLAP_SENTENCES
 ):
+    """Split text into overlapping, sentence-based chunks.
+
+    Args:
+        text: Text to divide into chunks.
+        max_words: Approximate maximum number of words per chunk.
+        overlap_sentences: Number of sentences copied into the next chunk.
+
+    Returns:
+        A list of chunk strings.
+    """
     sentences = re.split(r"(?<=[.!?])\s+", text.strip())
 
     chunks = []
@@ -63,15 +71,40 @@ def chunk_text_by_sentence(
     return chunks
 
 def fingerprint_document(path):
+    """Return the SHA-256 fingerprint of the file at path.
+
+    Args:
+        path: Path of the document to fingerprint.
+
+    Returns:
+        The document's hexadecimal SHA-256 fingerprint.
+    """
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def get_document_fingerprints(folder):
+    """Return a mapping of document filenames to content fingerprints.
+
+    Args:
+        folder: Directory containing the documents.
+
+    Returns:
+        A dictionary mapping each filename to its SHA-256 fingerprint.
+    """
     return {
         path.name: fingerprint_document(path)
         for path in sorted(folder.glob("*"))
     }
 
 def classify_document_changes(current, previous):
+    """Compare current and previously saved document fingerprints.
+
+    Args:
+        current: Current filename-to-fingerprint mapping.
+        previous: Previously saved filename-to-fingerprint mapping.
+
+    Returns:
+        Sets containing new, modified, deleted, and unchanged filenames.
+    """
     current_names = set(current)
     previous_names = set(previous)
 
@@ -80,13 +113,21 @@ def classify_document_changes(current, previous):
     modified_sources = {
         source
         for source in current_names & previous_names
-        if current[source] != previous[source] # What does this compare
+        if current[source] != previous[source]
     }
     unchanged_sources = (current_names & previous_names) - modified_sources
 
     return new_sources, modified_sources, deleted_sources, unchanged_sources
 
 def index_settings_match(index):
+    """Return whether an index uses the current format and settings.
+
+    Args:
+        index: Saved index dictionary to check.
+
+    Returns:
+        True when the index is compatible; otherwise False.
+    """
     return (
         index.get("format_version") == 2
         and index.get("embedding_model") == EMBEDDING_MODEL
@@ -97,6 +138,16 @@ def index_settings_match(index):
     )
 
 def load_documents(folder, source_names=None):
+    """Load and chunk selected .txt documents.
+
+    Args:
+        folder: Directory containing the documents.
+        source_names: Optional collection of filenames to load. If omitted,
+            every .txt file is loaded.
+
+    Returns:
+        Records containing each chunk's source, ID, and text.
+    """
     records = []
 
     paths = sorted(folder.glob("*.txt"))
@@ -121,6 +172,11 @@ def load_documents(folder, source_names=None):
     return records
 
 def add_embeddings(records):
+    """Add an embedding vector to each chunk record in place.
+
+    Args:
+        records: Chunk records to update.
+    """
     if not records:
         return
 
@@ -130,6 +186,14 @@ def add_embeddings(records):
         record["embedding"] = embedding
 
 def create_embeddings(texts):
+    """Create embedding vectors for a batch of texts.
+
+    Args:
+        texts: Strings to send to the embeddings API.
+
+    Returns:
+        Embedding vectors in the same order as the input texts.
+    """
     response = client.embeddings.create(
         model=EMBEDDING_MODEL,
         input=texts,
@@ -143,6 +207,12 @@ def create_embeddings(texts):
     return [item.embedding for item in ordered_results]
 
 def save_index(records, document_fingerprints):
+    """Save records, fingerprints, and indexing settings to disk.
+
+    Args:
+        records: Chunk records containing their embeddings.
+        document_fingerprints: Filename-to-fingerprint mapping.
+    """
     index = {
         "format_version": 2,
         "embedding_model" : EMBEDDING_MODEL,
@@ -157,6 +227,14 @@ def save_index(records, document_fingerprints):
     INDEX_PATH.write_text(json.dumps(index, ensure_ascii=False), encoding="utf-8")
 
 def load_index():
+    """Load and validate the saved RAG index.
+
+    Returns:
+        The saved chunk records.
+
+    Raises:
+        RuntimeError: If the index is missing, incompatible, or stale.
+    """
     if not INDEX_PATH.exists():
         raise RuntimeError("The RAG Index does not exist. Run the ingest command first.")
 
@@ -176,6 +254,15 @@ def load_index():
     return index["records"]
 
 def cosine_similarity(vector_a, vector_b):
+    """Calculate cosine similarity between two vectors.
+
+    Args:
+        vector_a: First numeric vector.
+        vector_b: Second numeric vector.
+
+    Returns:
+        The vectors' cosine similarity score.
+    """
     vector_a = np.array(vector_a)
     vector_b = np.array(vector_b)
 
@@ -184,6 +271,16 @@ def cosine_similarity(vector_a, vector_b):
     )
 
 def retrieve(question, records, top_k=4):
+    """Find the chunk records most similar to a question.
+
+    Args:
+        question: The user's natural-language question.
+        records: Indexed chunk records with embeddings.
+        top_k: Maximum number of records to return.
+
+    Returns:
+        The highest-scoring records in descending similarity order.
+    """
     question_embedding = create_embeddings([question])[0]
     results = []
 
@@ -207,6 +304,15 @@ def retrieve(question, records, top_k=4):
     return results[:top_k]
 
 def generate_answer(question, retrieved_records):
+    """Generate an answer grounded in retrieved records.
+
+    Args:
+        question: The user's question.
+        retrieved_records: Relevant chunks selected by retrieval.
+
+    Returns:
+        The generated answer text.
+    """
     context_parts = []
 
     for record in retrieved_records:
@@ -246,6 +352,11 @@ Question:
     return response.output_text
 
 def ingest_documents():
+    """Incrementally update the index from the knowledge base.
+
+    New and modified documents are embedded, unchanged records are reused,
+    and records belonging to deleted documents are removed.
+    """
     current_fingerprints = get_document_fingerprints(KNOWLEDGE_BASE)
 
     if not current_fingerprints:
@@ -307,6 +418,12 @@ def ingest_documents():
     print(f"Saved the index to {INDEX_PATH.resolve()}.")
 
 def answer_question(question, top_k=4):
+    """Retrieve evidence and print an answer to a question.
+
+    Args:
+        question: The question to answer.
+        top_k: Number of chunks to use as evidence.
+    """
     records = load_index()
 
     retrieved_records = retrieve(
@@ -331,6 +448,7 @@ def answer_question(question, top_k=4):
     print(answer)
 
 def main():
+    """Parse command-line arguments and run ingestion or querying."""
     parser = argparse.ArgumentParser(description="Local persistent RAG application")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
