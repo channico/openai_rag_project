@@ -42,3 +42,5 @@ dist/
 .AppleDouble
 .LSOverride
 ._*
+
+/rag_index.json
