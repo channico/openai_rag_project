@@ -392,7 +392,7 @@ def evaluate_retrieval(
                 f"{case['question']}"
             )
         accuracy = correct / len(cases)
-        print(f"Accuracy: {correct}/{len(cases)} {accuracy:.0}%")
+        print(f"Accuracy: {correct}/{len(cases)} {accuracy:.0%}")
 
 def generate_answer(question, retrieved_records):
     """Generate an answer grounded in retrieved records.
