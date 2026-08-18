@@ -1,0 +1,6 @@
+# Exact pins keep the teaching demonstration reproducible.
+openai==3.0.0
+openai-agents==0.21.1
+mcp==2.0.0
+numpy==2.5.2
+python-dotenv==1.2.2
