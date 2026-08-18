@@ -26,6 +26,8 @@ retrieval.
 5. [AI Agents teaching deck](lesson_plans_slides/Nicodemus_Chan_AI_Agents_Teaching_Demo.pptx)
 6. [AI Agents lesson plan](lesson_plans_slides/Nicodemus_Chan_60_Minute_AI_Agents_Lesson_Plan.docx)
 7. [`MCP_LAB.md`](MCP_LAB.md) — optional MCP extension and facilitator prompts
+8. [`rag_mcp_server.py`](rag_mcp_server.py) — optional MCP server exposing policy retrieval as a structured tool
+9. [`rag_mcp_agent.py`](rag_mcp_agent.py) — optional agent that launches and consumes the MCP server over stdio
 
 ## What the project demonstrates
 
@@ -271,4 +273,3 @@ demonstrations.
 - [OpenAI retrieval guide](https://developers.openai.com/api/docs/guides/retrieval)
 - [OpenAI Agents SDK](https://developers.openai.com/api/docs/guides/agents-sdk)
 - [OpenAI MCP and connectors guide](https://developers.openai.com/api/docs/guides/tools-connectors-mcp)
-
