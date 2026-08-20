@@ -20,12 +20,12 @@ retrieval.
 ## Suggested review path
 
 1. RAG teaching deck: [PowerPoint](lesson_plans_slides/Nicodemus_Chan_RAG_Teaching_Demo.pptx) | [PDF](lesson_plans_slides/Nicodemus_Chan_RAG_Teaching_Demo.pdf)
-2. [RAG lesson plan](lesson_plans_slides/Nicodemus_Chan_60_Minute_RAG_Lesson_Plan.docx)
+2. RAG lesson plan: [Word](lesson_plans_slides/Nicodemus_Chan_60_Minute_RAG_Lesson_Plan.docx) | [PDF](lesson_plans_slides/Nicodemus_Chan_60_Minute_RAG_Lesson_Plan.pdf)
 3. [`rag_app.py`](rag_app.py) — the complete self-managed RAG application
 4. [`rag_agent.py`](rag_agent.py) — the RAG retriever exposed as an in-process agent tool
 5. AI Agents teaching deck: [PowerPoint](lesson_plans_slides/Nicodemus_Chan_AI_Agents_Teaching_Demo.pptx) | [PDF](lesson_plans_slides/Nicodemus_Chan_AI_Agents_Teaching_Demo.pdf)
 6. [`AI_Agents_Deck_Sources_and_Attributions.md`](lesson_plans_slides/AI_Agents_Deck_Sources_and_Attributions.md) - Sources and Attributions
-7. [AI Agents lesson plan](lesson_plans_slides/Nicodemus_Chan_60_Minute_AI_Agents_Lesson_Plan.docx)
+7. AI Agents lesson plan: [Word](lesson_plans_slides/Nicodemus_Chan_60_Minute_AI_Agents_Lesson_Plan.docx) | [PDF](lesson_plans_slides/Nicodemus_Chan_60_Minute_AI_Agents_Lesson_Plan.pdf)
 8. [`MCP_LAB.md`](MCP_LAB.md) — optional MCP extension and facilitator prompts
 9. [`rag_mcp_server.py`](rag_mcp_server.py) — optional MCP server exposing policy retrieval as a structured tool
 10. [`rag_mcp_agent.py`](rag_mcp_agent.py) — optional agent that launches and consumes the MCP server over stdio
